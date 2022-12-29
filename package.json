@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "assert": "^2.0.0",
+    "aws-sdk": "^2.1251.0",
+    "axios": "^1.2.0",
+    "body-parser": "^1.20.1",
+    "bs58check": "^2.1.2",
+    "crypto": "^1.0.1",
+    "deso-protocol": "^0.8.2",
+    "elliptic": "^6.5.4",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7",
+    "tslib": "^2.4.1"
+  }
+}
