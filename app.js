@@ -19,9 +19,7 @@ const bodyParser = require('body-parser');
     const book_title = body['BookTitle'];
     const book_id = body['BookID']
     let book_key = crypto.randomBytes(32).toString('hex');
-    // crypto.webcrypto.getRandomValues(book_key);
     const url_key = crypto.randomBytes(32).toString('hex');
-    // crypto.webcrypto.getRandomValues(url_key);
     console.log("book_key " + book_key);
     console.log("url key " + url_key);
     
@@ -30,6 +28,8 @@ const bodyParser = require('body-parser');
         'book_key': book_key,
         'url_key': url_key,
     }
+    console.log("Logging Data!");
+    console.log(data);
 
     let response = await deso.sendMessage(data, book_title, author_public_key);
     let returnMe = {

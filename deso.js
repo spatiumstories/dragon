@@ -11,6 +11,27 @@ const fetch = require('node-fetch');
 const SEED_HEX = process.env.SEED_HEX;
 const DRAGON_PUB_KEY = process.env.DRAGON_PUB_KEY;
 
+
+async function get_signature_index(tx_hex) {
+    let uri = "https://node.deso.org/api/v0/signature-index";
+    let data = {
+        "TransactionHex": tx_hex
+    };
+
+    const response_raw = await fetch(uri, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    const response = await response_raw.json();
+    console.log(response);
+    let index = response["SignatureIndex"];
+    return index;
+}
+
 /**
  * Constructs Message object and
  * submits the message to deso blockchain
@@ -53,7 +74,10 @@ async function sendMessage(data, message, receiver_public_key) {
             "SenderPublicKeyBase58Check": DRAGON_PUB_KEY,
             "RecipientPublicKeyBase58Check": receiver_public_key,
             "EncryptedMessageText": encryptedMsgToSend.toString('hex'),
-            "MinFeeRateNanosPerKB": 1000
+            "MinFeeRateNanosPerKB": 1000,
+            "RecipientMessagingGroupKeyName": "default-key",
+            "SenderMessagingGroupKeyName": "default-key",
+            "V": "2"
         };
 
         let message_uri = "https://node.deso.org/api/v0/send-message-stateless";
@@ -71,7 +95,8 @@ async function sendMessage(data, message, receiver_public_key) {
         console.log(response);
         let tx_hex = response["TransactionHex"];
         console.log(response);
-        let tx_signed_hex = sign.sign(SEED_HEX, tx_hex);
+        let sig_index = await get_signature_index(tx_hex);
+        let tx_signed_hex = sign.sign(SEED_HEX, tx_hex, sig_index);
 
         // Now submit tx
         let submit_uri = "https://node.deso.org/api/v0/submit-transaction";
@@ -87,8 +112,9 @@ async function sendMessage(data, message, receiver_public_key) {
             },
             body: JSON.stringify(submit_data) // body data type must match "Content-Type" header
         });
+        console.log(submit_response_raw);
         const submit_response = await submit_response_raw.json(); // parses JSON response into native JavaScript objects
-        // console.log(submit_response.data);
+        console.log(submit_response);
         return submit_response;
 
     } catch (err) {
@@ -100,7 +126,7 @@ async function sendMessage(data, message, receiver_public_key) {
 }
 
 async function getSharedSecret(publicKey, seed_hex) {
-    let private_key_hex = new Buffer(seed_hex, 'hex');
+    let private_key_hex = new Buffer.from(seed_hex, 'hex');
     let public_key_hex = bs58check.decode(publicKey);
     const payload = Uint8Array.from(public_key_hex).slice(3);
     console.log(public_key_hex);
@@ -152,8 +178,7 @@ async function getMessages(author_public_key, book_id) {
                             let encrypted_book_key = message['ExtraData']['book_key'];
                             let encrypted_url_key = message['ExtraData']['url_key'];
                             try {
-                                let publicKey = message['RecipientMessagingPublicKey'];
-                                let sharedSecret = await getSharedSecret(publicKey, SEED_HEX);
+                                let sharedSecret = await getSharedSecret(author_public_key, SEED_HEX);
                                 let decrypted_book_key = crypto.decryptMessage(sharedSecret, encrypted_book_key);
                                 let decrypted_url_key = crypto.decryptMessage(sharedSecret, encrypted_url_key);
                                 let messageToAdd = {

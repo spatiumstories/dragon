@@ -21,19 +21,28 @@ const uvarint64ToBuf = (uint) => {
   return new Buffer.from(result);
 };
 
-function signTransaction(seedHex, transactionHex) {
+function signTransaction(seedHex, transactionHex, sigIndex) {
+
+  /**
+   *let transaction_bytes = hex::decode(&tx).expect("Problem decoding transaction");
+    let v1_fields_buffer = &transaction_bytes[signature_index + 1..];
+    let v0_fields_without_signature = &transaction_bytes[0..signature_index];
+   */
   const privateKey = seedHexToPrivateKey(seedHex);
 
   const transactionBytes = new Buffer.from(transactionHex, 'hex');
+  const v1_fields_buffer = transactionBytes.slice(sigIndex + 1);
+  const v0_fields_without_signature = transactionBytes.slice(0, sigIndex);
   const transactionHash = new Buffer.from(sha256.x2(transactionBytes), 'hex');
   const signature = privateKey.sign(transactionHash);
   const signatureBytes = new Buffer.from(signature.toDER());
   const signatureLength = uvarint64ToBuf(signatureBytes.length);
 
   const signedTransactionBytes = Buffer.concat([
-    transactionBytes.slice(0, -1),
+    v0_fields_without_signature,
     signatureLength,
     signatureBytes,
+    v1_fields_buffer
   ]);
 
   return signedTransactionBytes.toString('hex');

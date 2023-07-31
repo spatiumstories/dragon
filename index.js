@@ -15,9 +15,7 @@ const crypto = require('crypto');
     const author_public_key = body['AuthorPublicKey'];
     const book_title = body['BookTitle'];
     let book_key = crypto.randomBytes(32).toString('hex');
-    // crypto.webcrypto.getRandomValues(book_key);
     const url_key = crypto.randomBytes(32).toString('hex');
-    // crypto.webcrypto.getRandomValues(url_key);
     console.log("book_key " + book_key);
     console.log("url key " + url_key);
     
@@ -26,6 +24,8 @@ const crypto = require('crypto');
         'book_key': book_key,
         'url_key': url_key,
     }
+      console.log("Logging Data!");
+      console.log(data);
 
     await deso.sendMessage(data, book_title, author_public_key);
     let returnMe = {

@@ -85,7 +85,7 @@ function derive (privateKeyA, publicKeyB) {
     const keyA = ec.keyFromPrivate(privateKeyA);
     // const keyB = ec.keyFromPublic(publicKeyB);
     const Px = keyA.derive(keyB.getPublic());  // BN instance
-    return new Buffer(Px.toArray());
+    return new Buffer.from(Px.toArray());
 }
 
 // Sha256 HMAC.
@@ -112,7 +112,7 @@ function aesCtrDecrypt (counter, key, data) {
 // Obtain the public elliptic curve key from a private.
 function getPublic (privateKey) {
     assert(privateKey.length === 32, "Bad private key");
-    return new Buffer(ec.keyFromPrivate(privateKey).getPublic("arr"));
+    return new Buffer.from(ec.keyFromPrivate(privateKey).getPublic("arr"));
 }
 
 /*
@@ -121,8 +121,8 @@ function getPublic (privateKey) {
 
 // Decrypt a message using shared secret.
 function decryptMessage (sharedSecret, encryptedText) {
-    const sharedPrivateKey = new Buffer(sharedSecret, 'hex');
-    const encrypted = new Buffer(encryptedText, 'hex');
+    const sharedPrivateKey = new Buffer.from(sharedSecret, 'hex');
+    const encrypted = new Buffer.from(encryptedText, 'hex');
 
     const metaLength = 1 + 64 + 16 + 32;
     assert(encrypted.length > metaLength, "Invalid Ciphertext. Data is too small")
@@ -150,7 +150,7 @@ function decryptMessage (sharedSecret, encryptedText) {
 
 // Encrypt a message using shared secret.
 function encryptMessage (sharedSecret, msg) {
-    const sharedPrivateKey = new Buffer(sharedSecret, 'hex');
+    const sharedPrivateKey = new Buffer.from(sharedSecret, 'hex');
     const sharedPublicKey = getPublic(sharedPrivateKey);
 
     const ephemPrivateKey = crypto.randomBytes(32);
